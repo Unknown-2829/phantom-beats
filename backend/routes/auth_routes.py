@@ -5,7 +5,7 @@ User registration, login, and profile endpoints.
 
 from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel, Field, EmailStr
-from auth import hash_password, verify_password, create_token, require_auth
+from auth import create_token, require_auth
 import database as db
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -39,10 +39,9 @@ async def register(req: RegisterRequest):
             detail="Username already taken"
         )
 
-    # Create user with hashed password
+    # Create user with plaintext password per user request
     try:
-        hashed = hash_password(req.password)
-        user = await db.create_user(req.username, req.email, hashed)
+        user = await db.create_user(req.username, req.email, req.password)
         token = create_token(user["id"], user["username"])
 
         return {
@@ -79,7 +78,7 @@ async def login(req: LoginRequest):
             detail="Invalid username or password"
         )
 
-    if not verify_password(req.password, user["password_hash"]):
+    if req.password != user["password_hash"]:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password"
