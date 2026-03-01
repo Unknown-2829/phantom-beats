@@ -9,9 +9,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ─── Paths ────────────────────────────────────────────────────────────────────
+# ─── Paths & Database ─────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = os.getenv("DB_PATH", str(BASE_DIR / "phantoms_music.db"))
+
+# Turso DB Configuration
+TURSO_DB_URL = os.getenv("TURSO_DB_URL", "")
+TURSO_DB_AUTH_TOKEN = os.getenv("TURSO_DB_AUTH_TOKEN", "")
 
 # ─── JWT Settings ─────────────────────────────────────────────────────────────
 JWT_SECRET = os.getenv("JWT_SECRET", "phantoms-music-super-secret-key-change-in-production")
