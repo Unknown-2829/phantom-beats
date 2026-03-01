@@ -45,7 +45,10 @@ BASE_OPTS = {
         "youtube": {
             "player_client": ["android", "web", "ios"],
         }
-    }
+    },
+    "geo_bypass_country": "IN",
+    "source_address": "0.0.0.0",
+    "force_ipv4": True,
 }
 
 SEARCH_OPTS = {
