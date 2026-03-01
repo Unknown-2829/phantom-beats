@@ -38,12 +38,15 @@ export default function SearchBar({ onSearch }) {
         if (query.trim()) {
             onSearch(query.trim());
             setShowDropdown(false);
+            setSuggestions([]); // Clear suggestions to prevent reopening on focus
+            document.activeElement?.blur(); // Dismiss mobile keyboard
         }
     };
 
     const handleSuggestionClick = (suggestion) => {
         setQuery(suggestion);
         setShowDropdown(false);
+        setSuggestions([]); // Clear suggestions
         onSearch(suggestion);
     };
 

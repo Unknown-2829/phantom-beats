@@ -265,7 +265,7 @@ export default function App() {
     // ─── Genre selection ──────────────────────────────────────────────────────
     const handleGenreClick = async (genre) => {
         setCurrentGenre(genre);
-        setCurrentView('genre');
+        handleNavigate('genre');
         setSearchLoading(true);
         try {
             const data = await api.getTrending(genre.id, 20);
@@ -301,7 +301,7 @@ export default function App() {
     };
 
     const handlePlaylistClick = async (pl) => {
-        setCurrentView('playlist');
+        handleNavigate('playlist');
         setSearchLoading(true); // Instant page switch + show loading skeleton
         try {
             const data = await api.getPlaylist(pl.id);
@@ -629,7 +629,7 @@ export default function App() {
             {/* Sidebar */}
             <Sidebar
                 currentView={currentView}
-                onNavigate={setCurrentView}
+                onNavigate={handleNavigate}
                 playlists={playlists}
                 onCreatePlaylist={handleCreatePlaylist}
                 onPlaylistClick={handlePlaylistClick}
@@ -688,7 +688,7 @@ export default function App() {
             {/* Mobile Bottom Navigation (shown ≤768px) */}
             <MobileBottomNav
                 currentView={currentView}
-                onNavigate={setCurrentView}
+                onNavigate={handleNavigate}
                 sidebarOpen={sidebarOpen}
                 onLibraryClick={() => setSidebarOpen(prev => !prev)}
                 canInstall={!!deferredPrompt}
