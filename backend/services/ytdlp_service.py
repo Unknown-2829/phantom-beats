@@ -98,7 +98,6 @@ SEARCH_OPTS = {
 
 STREAM_OPTS = {
     **BASE_OPTS,
-    "format": "bestaudio/best",
     "skip_download": True,
 }
 
