@@ -3,7 +3,8 @@
  * Centralized HTTP client for all backend communication.
  */
 
-const BASE_URL = '/api';
+// Use VITE_API_BASE from Cloudflare environment variables, fallback to local Vite proxy
+const BASE_URL = import.meta.env.VITE_API_BASE || '/api';
 
 /**
  * Get the stored JWT token.
