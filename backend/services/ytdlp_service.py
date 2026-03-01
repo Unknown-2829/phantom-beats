@@ -30,20 +30,28 @@ local_dev_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cooki
 
 source_path = None
 if os.path.exists(render_secret_path):
+    print(f"[Phantom/yt-dlp] ✅ SECRETS MOUNT DETECTED: {render_secret_path}")
     source_path = render_secret_path
 elif os.path.exists(local_dev_path):
+    print(f"[Phantom/yt-dlp] ✅ LOCAL DEV COOKIES DETECTED: {local_dev_path}")
     source_path = local_dev_path
+else:
+    print(f"[Phantom/yt-dlp] ❌ WARNING: NO COOKIE FILE FOUND AT {render_secret_path}")
 
 if source_path:
-    # yt-dlp needs to WRITE to the cookie file to update sessions.
-    # Render's Secret Files are strictly Read-Only, causing Errno 30.
-    # Fix: Copy the secret file to a writable temporary directory.
     try:
         writable_cookie_path = os.path.join(tempfile.gettempdir(), "phantom_working_cookies.txt")
         shutil.copy2(source_path, writable_cookie_path)
         cookie_file_path = writable_cookie_path
+        
+        # Verify file size to ensure the user didn't upload an empty file
+        size_kb = os.path.getsize(cookie_file_path) / 1024
+        print(f"[Phantom/yt-dlp] ✅ Success: Copied cookies to {cookie_file_path} ({size_kb:.1f} KB)")
+        if size_kb < 1:
+            print("[Phantom/yt-dlp] ❌ ERROR: Cookie file is almost empty! Did you paste the text correctly?")
+            
     except Exception as e:
-        print(f"[yt-dlp] Warning: Could not copy cookies to writable path: {e}")
+        print(f"[Phantom/yt-dlp] ❌ Warning: Could not copy cookies to writable path: {e}")
         cookie_file_path = source_path  # Fallback to read-only
 
 
@@ -76,12 +84,6 @@ BASE_OPTS = {
     "http_headers": {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
     },
-    "extractor_args": {
-        "youtube": {
-            "player_client": ["tv", "mweb", "android", "ios"],
-            "player_skip": ["webpage", "configs", "js"],
-        }
-    },
     "geo_bypass_country": "IN",
     "source_address": "0.0.0.0",
     "force_ipv4": True,
@@ -98,12 +100,6 @@ STREAM_OPTS = {
     **BASE_OPTS,
     "format": "bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best",
     "skip_download": True,
-    "extractor_args": {
-        "youtube": {
-            "player_client": ["android", "ios", "web_creator"],
-            "player_skip": ["webpage", "configs", "js"],
-        }
-    }
 }
 
 INFO_OPTS = {
