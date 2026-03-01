@@ -38,6 +38,14 @@ BASE_OPTS = {
     "extract_flat": False,
     "geo_bypass": True,
     "nocheckcertificate": True,
+    "http_headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    },
+    "extractor_args": {
+        "youtube": {
+            "player_client": ["android", "web", "ios"],
+        }
+    }
 }
 
 SEARCH_OPTS = {
@@ -51,6 +59,12 @@ STREAM_OPTS = {
     **BASE_OPTS,
     "format": "bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best",
     "skip_download": True,
+    "extractor_args": {
+        "youtube": {
+            "player_client": ["android", "ios", "web_creator"],
+            "player_skip": ["webpage", "configs", "js"],
+        }
+    }
 }
 
 INFO_OPTS = {
