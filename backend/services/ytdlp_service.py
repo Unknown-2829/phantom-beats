@@ -81,14 +81,19 @@ BASE_OPTS = {
     "geo_bypass": True,
     "nocheckcertificate": True,
     "cookiefile": cookie_file_path,  # Uses the dynamic cookies file if provided
-    "username": "oauth2",            # Use the yt-dlp-youtube-oauth2 plugin
-    "password": "",                  
     "http_headers": {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
     },
+    "extractor_args": {
+        "youtube": {
+            # Provide an actively generated dummy PO Token to bypass HTTP 400 Bot checks
+            "po_token": ["web+MnsgMTkyMzYxNjc2MTQ3Njg4Nztub25jZT0iZDViMGUwZTgxMWFiYzc0YzQ4NTgxZDNmNThkMzQ0NDAiOyB9"],
+            "player_client": ["android", "ios"]
+        }
+    },
     "geo_bypass_country": "IN",
     "source_address": "0.0.0.0",
-    "force_ipv4": True,
+    "force_ipv4": False,
 }
 
 SEARCH_OPTS = {
