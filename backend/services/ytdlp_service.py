@@ -81,6 +81,8 @@ BASE_OPTS = {
     "geo_bypass": True,
     "nocheckcertificate": True,
     "cookiefile": cookie_file_path,  # Uses the dynamic cookies file if provided
+    "username": "oauth2",            # Use the yt-dlp-youtube-oauth2 plugin
+    "password": "",                  
     "http_headers": {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
     },
