@@ -18,13 +18,21 @@ from config import YTDLP_MAX_RESULTS, YTDLP_CACHE_TTL
 # YouTube Bot Protection (Cookies Bypass)
 # ═══════════════════════════════════════════════════════════════════════════════
 # YouTube aggressively blocks datacenter IPs (like Render) with "Sign in" errors.
-# To bypass permanently, provide a Netscape cookies.txt string in the ENVs.
+# To bypass permanently, provide a Base64 encoded Netscape cookies.txt string.
+import base64
+
 cookie_file_path = None
-youtube_cookies = os.getenv("YOUTUBE_COOKIES", "")
-if youtube_cookies.strip():
-    cookie_file_path = os.path.join(tempfile.gettempdir(), "youtube_cookies.txt")
-    with open(cookie_file_path, "w", encoding="utf-8") as f:
-        f.write(youtube_cookies.replace("\\n", "\n"))
+youtube_cookies_b64 = os.getenv("YOUTUBE_COOKIES_B64", "")
+
+if youtube_cookies_b64.strip():
+    try:
+        # Decode the Base64 cookie string back into raw text
+        raw_cookie_text = base64.b64decode(youtube_cookies_b64).decode("utf-8")
+        cookie_file_path = os.path.join(tempfile.gettempdir(), "youtube_cookies.txt")
+        with open(cookie_file_path, "w", encoding="utf-8") as f:
+            f.write(raw_cookie_text.replace("\\n", "\n"))
+    except Exception as e:
+        print(f"[yt-dlp] Failed to decode YOUTUBE_COOKIES_B64: {e}")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
