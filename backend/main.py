@@ -108,10 +108,10 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 # ─── Register Routers ────────────────────────────────────────────────────────
-app.include_router(search_router, redirect_slashes=False)
-app.include_router(stream_router, redirect_slashes=False)
-app.include_router(playlist_router, redirect_slashes=False)
-app.include_router(auth_router, redirect_slashes=False)
+app.include_router(search_router)
+app.include_router(stream_router)
+app.include_router(playlist_router)
+app.include_router(auth_router)
 
 
 # ─── Health Check & Info ──────────────────────────────────────────────────────
