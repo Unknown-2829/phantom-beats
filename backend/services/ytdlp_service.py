@@ -98,7 +98,7 @@ SEARCH_OPTS = {
 
 STREAM_OPTS = {
     **BASE_OPTS,
-    "format": "bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best",
+    "format": "bestaudio/best",
     "skip_download": True,
 }
 
