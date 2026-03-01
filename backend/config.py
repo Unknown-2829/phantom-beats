@@ -23,7 +23,9 @@ JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "72"))
 
 # ─── CORS ─────────────────────────────────────────────────────────────────────
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000").split(",")
+# By default allow all origins (*), user can restrict this via Render variables
+_origins_env = os.getenv("CORS_ORIGINS", "*")
+CORS_ORIGINS = ["*"] if _origins_env == "*" else _origins_env.split(",")
 
 # ─── yt-dlp Settings ─────────────────────────────────────────────────────────
 YTDLP_MAX_RESULTS = int(os.getenv("YTDLP_MAX_RESULTS", "20"))
