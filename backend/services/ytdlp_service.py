@@ -8,9 +8,23 @@ import yt_dlp
 import asyncio
 import hashlib
 import time
+import os
+import tempfile
 from functools import lru_cache
 from typing import Optional
 from config import YTDLP_MAX_RESULTS, YTDLP_CACHE_TTL
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# YouTube Bot Protection (Cookies Bypass)
+# ═══════════════════════════════════════════════════════════════════════════════
+# YouTube aggressively blocks datacenter IPs (like Render) with "Sign in" errors.
+# To bypass permanently, provide a Netscape cookies.txt string in the ENVs.
+cookie_file_path = None
+youtube_cookies = os.getenv("YOUTUBE_COOKIES", "")
+if youtube_cookies.strip():
+    cookie_file_path = os.path.join(tempfile.gettempdir(), "youtube_cookies.txt")
+    with open(cookie_file_path, "w", encoding="utf-8") as f:
+        f.write(youtube_cookies.replace("\\n", "\n"))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -38,12 +52,14 @@ BASE_OPTS = {
     "extract_flat": False,
     "geo_bypass": True,
     "nocheckcertificate": True,
+    "cookiefile": cookie_file_path,  # Uses the dynamic cookies file if provided
     "http_headers": {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
     },
     "extractor_args": {
         "youtube": {
-            "player_client": ["android", "web", "ios"],
+            "player_client": ["tv", "mweb", "android", "ios"],
+            "player_skip": ["webpage", "configs", "js"],
         }
     },
     "geo_bypass_country": "IN",
