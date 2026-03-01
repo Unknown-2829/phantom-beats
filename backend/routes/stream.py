@@ -162,13 +162,11 @@ def _proxy_stream_ffmpeg(audio_url: str):
 
 
 @router.get("/{video_id}/proxy")
-async def stream_proxy(video_id: str, request: Request):
+async def stream_proxy(video_id: str, request: Request, response: Response):
     """
-    Smart audio proxy:
-    - WebM/Opus/M4A → served raw (no conversion, instant start)
-    - Other formats → FFmpeg converts to MP3
-
-    This eliminates the FFmpeg startup delay for compatible formats.
+    Smart audio proxy that supports Range requests (seeking):
+    - WebM/Opus/M4A → served raw with 206 Partial Content support
+    - Other formats → FFmpeg converts to MP3 (no seeking support)
     """
     if not video_id or len(video_id) < 5:
         raise HTTPException(status_code=400, detail="Invalid video ID")
@@ -182,35 +180,83 @@ async def stream_proxy(video_id: str, request: Request):
         raise HTTPException(status_code=404, detail="No audio stream found")
 
     fmt = result.get("ext", result.get("format", "")).lower()
-    # Strip quality suffix like "251" from format string
     fmt = fmt.split("-")[0].split(".")[0]
 
-    # Check if we can serve natively
     native_mime = NATIVE_MIME_TYPES.get(fmt)
 
-    headers = {
-        "Cache-Control": "no-cache",
-        "Access-Control-Allow-Origin": "*",
-        "Content-Disposition": "inline",
-        "Accept-Ranges": "bytes",
-    }
-
     if native_mime:
-        # Serve raw — fastest path, no FFmpeg delay
-        print(f"[Stream] Native {fmt} → {native_mime} for {video_id}")
+        # ─── NATIVE PROXY WITH RANGE SUPPORT (ALLOWS SEEKING) ───
+        req_headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        }
+        
+        # Forward the browser's Range request to YouTube
+        range_header = request.headers.get("Range")
+        if range_header:
+            req_headers["Range"] = range_header
+        else:
+            req_headers["Range"] = "bytes=0-"
+
+        import asyncio
+        import urllib.request
+        
+        def _get_upstream():
+            req = urllib.request.Request(audio_url, headers=req_headers)
+            return urllib.request.urlopen(req, timeout=10)
+            
+        try:
+            upstream_resp = await asyncio.to_thread(_get_upstream)
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"Upstream error: {str(e)}")
+
+        resp_headers = {
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "no-cache",
+            "Access-Control-Allow-Origin": "*",
+            "Content-Disposition": "inline",
+        }
+        
+        if "Content-Range" in upstream_resp.headers:
+            resp_headers["Content-Range"] = upstream_resp.headers["Content-Range"]
+        if "Content-Length" in upstream_resp.headers:
+            resp_headers["Content-Length"] = upstream_resp.headers["Content-Length"]
+
+        status_code = upstream_resp.getcode() # Usually 206 if Range was provided
+
+        def stream_generator():
+            try:
+                while True:
+                    chunk = upstream_resp.read(65536)
+                    if not chunk:
+                        break
+                    yield chunk
+            except Exception:
+                pass
+            finally:
+                upstream_resp.close()
+
+        print(f"[Stream] Native {fmt} \u2192 {native_mime} for {video_id} (Status: {status_code})")
         return StreamingResponse(
-            _proxy_stream_raw(audio_url, native_mime),
+            stream_generator(),
             media_type=native_mime,
-            headers=headers,
+            headers=resp_headers,
+            status_code=status_code
         )
     else:
-        # FFmpeg fallback
+        # ─── FFMPEG FALLBACK (NO SEEKING) ───
+        headers = {
+            "Cache-Control": "no-cache",
+            "Access-Control-Allow-Origin": "*",
+            "Content-Disposition": "inline",
+            "Accept-Ranges": "none", # Cannot seek through live FFmpeg transcode
+        }
         print(f"[Stream] FFmpeg conversion for {video_id} (format: {fmt})")
         return StreamingResponse(
             _proxy_stream_ffmpeg(audio_url),
             media_type="audio/mpeg",
             headers=headers,
         )
+
 
 
 @router.get("/{video_id}/download")

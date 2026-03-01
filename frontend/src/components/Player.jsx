@@ -20,6 +20,7 @@ export default function Player({ onLyricsToggle, onEqToggle, onQueueToggle, show
     const seekBarRef = useRef(null);
     const volumeBarRef = useRef(null);
     const isSeeking = useRef(false);
+    const [dragProgress, setDragProgress] = useState(null); // Local numeric state while dragging
     const [showMobileExtras, setShowMobileExtras] = useState(false);
 
     // ─── Seek helpers ────────────────────────────────────────────────────────
@@ -41,9 +42,18 @@ export default function Player({ onLyricsToggle, onEqToggle, onQueueToggle, show
         const move = (ev) => {
             if (!isSeeking.current) return;
             const ratio = getSeekRatio(ev.clientX);
-            if (ratio !== null) seek(ratio * duration);
+            if (ratio !== null) setDragProgress(ratio * 100);
         };
-        const up = () => { isSeeking.current = false; window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+        const up = (ev) => {
+            if (isSeeking.current) {
+                const ratio = getSeekRatio(ev.clientX);
+                if (ratio !== null) seek(ratio * duration);
+            }
+            isSeeking.current = false;
+            setDragProgress(null);
+            window.removeEventListener('mousemove', move);
+            window.removeEventListener('mouseup', up);
+        };
         window.addEventListener('mousemove', move);
         window.addEventListener('mouseup', up);
     }, [duration, seek]);
@@ -53,20 +63,24 @@ export default function Player({ onLyricsToggle, onEqToggle, onQueueToggle, show
         isSeeking.current = true;
         const t = e.touches[0];
         const ratio = getSeekRatio(t.clientX);
-        if (ratio !== null) seek(ratio * duration);
-    }, [duration, seek]);
+        if (ratio !== null) setDragProgress(ratio * 100);
+    }, [duration]);
 
     const handleSeekTouchMove = useCallback((e) => {
         if (!isSeeking.current) return;
         e.preventDefault();
         const t = e.touches[0];
         const ratio = getSeekRatio(t.clientX);
-        if (ratio !== null) seek(ratio * duration);
-    }, [duration, seek]);
+        if (ratio !== null) setDragProgress(ratio * 100);
+    }, [duration]);
 
-    const handleSeekTouchEnd = useCallback(() => {
+    const handleSeekTouchEnd = useCallback((e) => {
+        if (isSeeking.current && dragProgress !== null) {
+            seek((dragProgress / 100) * duration);
+        }
         isSeeking.current = false;
-    }, []);
+        setDragProgress(null);
+    }, [dragProgress, duration, seek]);
 
     // Volume click
     const handleVolumeClick = useCallback((e) => {
@@ -82,7 +96,9 @@ export default function Player({ onLyricsToggle, onEqToggle, onQueueToggle, show
         downloadTrack(currentTrack.video_id, currentTrack.title);
     }, [currentTrack]);
 
-    const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+    const progress = dragProgress !== null ? dragProgress : (duration > 0 ? (currentTime / duration) * 100 : 0);
+    const displayTime = dragProgress !== null ? (dragProgress / 100) * duration : currentTime;
+
     const volumePercent = isMuted ? 0 : volume * 100;
     const volumeIcon = isMuted || volume === 0 ? '🔇' : volume < 0.5 ? '🔉' : '🔊';
     const repeatIcon = repeatMode === 'one' ? '🔂' : '🔁';
@@ -151,7 +167,7 @@ export default function Player({ onLyricsToggle, onEqToggle, onQueueToggle, show
 
                     {/* Seek bar — mouse + touch */}
                     <div className="player__progress">
-                        <span className="player__time">{formatTime(currentTime)}</span>
+                        <span className="player__time">{formatTime(displayTime)}</span>
                         <div
                             className="player__seek-bar"
                             ref={seekBarRef}

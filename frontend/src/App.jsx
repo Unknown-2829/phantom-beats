@@ -385,6 +385,7 @@ export default function App() {
     const handleNavigate = useCallback((view) => {
         setShowLyrics(false);
         setShowEq(false);
+        setShowQueue(false);
         setCurrentView(view);
 
         // Focus search input when navigating to search
