@@ -161,7 +161,7 @@ def _proxy_stream_ffmpeg(audio_url: str):
                 pass
 
 
-@router.get("/{video_id}/proxy")
+@router.api_route("/{video_id}/proxy", methods=["GET", "HEAD", "OPTIONS"])
 async def stream_proxy(video_id: str, request: Request, response: Response):
     """
     Smart audio proxy that supports Range requests (seeking):
