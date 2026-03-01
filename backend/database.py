@@ -13,8 +13,10 @@ from config import DB_PATH, TURSO_DB_URL, TURSO_DB_AUTH_TOKEN
 def get_db_client():
     """Returns a LibSQL connection, either remote (Turso) or local (SQLite)."""
     if TURSO_DB_URL and TURSO_DB_AUTH_TOKEN:
+        # Force HTTPS instead of WSS/LIBSQL to prevent handshake 505 errors
+        parsed_url = TURSO_DB_URL.replace("libsql://", "https://").replace("wss://", "https://")
         return libsql_client.create_client(
-            url=TURSO_DB_URL,
+            url=parsed_url,
             auth_token=TURSO_DB_AUTH_TOKEN
         )
     else:
