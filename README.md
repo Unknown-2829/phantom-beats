@@ -1,6 +1,6 @@
 # 🎵 Phantom Beats
 
-> **Stream HD music — free, open-source, no ads, no limits.**  
+> **Stream HD music — free, open-source, no ads, no limits.**   
 > Powered by YouTube • Built with FastAPI + React
 
 ![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)
