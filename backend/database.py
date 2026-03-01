@@ -198,8 +198,6 @@ async def update_playlist(playlist_id: int, name: str = None, description: str =
             f"UPDATE playlists SET {', '.join(updates)} WHERE id = ?",
             params
         )
-        return True        )
-        await db.commit()
         return True
 
 
