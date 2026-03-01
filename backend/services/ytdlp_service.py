@@ -98,6 +98,7 @@ SEARCH_OPTS = {
 
 STREAM_OPTS = {
     **BASE_OPTS,
+    "format": "best",
     "skip_download": True,
 }
 
