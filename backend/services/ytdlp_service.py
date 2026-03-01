@@ -22,14 +22,29 @@ from config import YTDLP_MAX_RESULTS, YTDLP_CACHE_TTL
 # file using Render's "Secret Files" feature, mapped to /etc/secrets/cookies.txt.
 
 # Also support a local cookies.txt file in the backend root for development
+import shutil
+
 cookie_file_path = None
 render_secret_path = "/etc/secrets/cookies.txt"
 local_dev_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cookies.txt")
 
+source_path = None
 if os.path.exists(render_secret_path):
-    cookie_file_path = render_secret_path
+    source_path = render_secret_path
 elif os.path.exists(local_dev_path):
-    cookie_file_path = local_dev_path
+    source_path = local_dev_path
+
+if source_path:
+    # yt-dlp needs to WRITE to the cookie file to update sessions.
+    # Render's Secret Files are strictly Read-Only, causing Errno 30.
+    # Fix: Copy the secret file to a writable temporary directory.
+    try:
+        writable_cookie_path = os.path.join(tempfile.gettempdir(), "phantom_working_cookies.txt")
+        shutil.copy2(source_path, writable_cookie_path)
+        cookie_file_path = writable_cookie_path
+    except Exception as e:
+        print(f"[yt-dlp] Warning: Could not copy cookies to writable path: {e}")
+        cookie_file_path = source_path  # Fallback to read-only
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
